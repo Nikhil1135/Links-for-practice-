@@ -1,1 +1,21 @@
 https://www.youtube.com/watch?v=CmtJpHo6lLk&t=871s
+https://gitlab.com/devops8375310/default-vpc
+https://www.youtube.com/watch?v=kyOh3FMdqf4&t=1263s
+https://gitlab.com/devops8375310/gitlab-cicd
+https://www.youtube.com/watch?v=iKDzbHj-62U
+https://www.youtube.com/watch?v=iKDzbHj-62U&t=998s
+next topics:
+1. Creating key pair from GitBash -> ssh-keygen -t rsa
+2. Create GitLab account using gmail account
+3. Upload the public key to GitLab -> Preferences -> SSH Key -> Add New Key
+4. Create "DevOps" group in GitLab
+5. Create a project "test-project" and do a "git clone SSH_URL" from GitBash
+6. Add some READMe.md files and .tf files and push to remote repo
+7. Create a new repo in GitLab from GitBash, using existing repo of Sankar, default-vpc
+8. Run "./deploy.sh" script to create EC2 instance 
+9. Login to EC2 instance using SSH key
+10. Terraform code explanation and usage of tls, local and aws plugins
+https://chatgpt.com/share/680f5cdc-493c-8008-9989-c30528d6b80a
+https://gitlab.com/devops8375310/devops-docs-march/-/blob/main/General/HA-HS-FT-Arch-AWS-AppDeploy.pdf?ref_type=heads
+https://medium.com/@madison.hersom/designing-a-three-tier-architecture-with-aws-1a6189711eae
+https://medium.com/@ganesharavind124/deploying-a-3-tier-application-on-aws-using-terraform-fb6da0385193
