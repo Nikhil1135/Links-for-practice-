@@ -1,0 +1,60 @@
+Definition:
+An Auto Scaling Group (ASG) in AWS is a service that automatically manages the number of Amazon EC2 instances in a group based on your defined scaling policies, health checks, and availability zone settings.
+
+================================================================================================================
+ Key Concepts:
+
+Concept	Explanation :-
+
+Launch Template / Launch Configuration - 	Defines how to launch an EC2 instance (e.g., AMI, instance type, key pair, security groups).
+Minimum Capacity - 	The minimum number of instances that must run at all times.
+Desired Capacity - 	The ideal number of instances that the ASG tries to maintain.
+Maximum Capacity - 	The upper limit of instances ASG can scale out to.
+Scaling Policies - 	Rules for when and how to scale (e.g., CPU > 70% → add instance).
+Health Checks - 	Monitors instance health (EC2 or ELB) and replaces unhealthy ones.
+Availability Zones - 	ASGs can span multiple zones for high availability.
+===================================================================================================================
+
+Why Use ASG?
+
+High Availability: Replaces failed instances automatically.
+
+Cost Efficiency: Scales down when load is low.
+
+Elasticity: Automatically scales based on demand.
+
+Integration: Works well with Elastic Load Balancer (ELB), CloudWatch, etc.
+====================================================================================================================
+
+
+                            ┌────────────────────────────┐
+                            │   aws_launch_template      │
+                            │      "example"             │
+                            └────────────┬───────────────┘
+                                         │
+                               (used in launch_template)
+                                         ▼
+                         ┌──────────────────────────────────┐
+                         │   aws_autoscaling_group          │
+                         │        "example"                 │
+                         └────────────┬───────────────┬─────┘
+                                      │               │
+                    ┌─────────────────▼─┐         ┌───▼─────────────────────┐
+                    │ CPU Alarms (watch)│         │ Memory Alarms (watch)   │
+                    │ cpu_high / cpu_low│         │ memory_high / memory_low│
+                    └───────────────────┘         └─────────────────────────┘
+                                      │               │
+                                      ▼               ▼
+                              ┌─────────────┐   ┌──────────────┐
+                              │ Scaling      │   │ Scaling      │
+                              │ Policies     │   │ Policies     │
+                              │ scale_out    │   │ scale_in     │
+                              └─────┬────────┘   └─────┬────────┘
+                                    │                  │
+                    ┌───────────────▼──────┐  ┌────────▼────────────────┐
+                    │ Alarms with actions  │  │ Alarms with actions     │
+                    │ cpu_high_action      │  │ cpu_low_action          │
+                    └──────────────────────┘  └─────────────────────────┘
+
+
+
