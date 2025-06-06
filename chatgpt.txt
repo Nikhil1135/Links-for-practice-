@@ -1,0 +1,262 @@
+Final Cleaned GitLab CI/CD File (Simplified, Commented for Notes)
+yaml
+Copy
+Edit
+variables:
+  AWS_ACCESS_KEY_ID: "$AWS_ACCESS_KEY_ID"
+  AWS_SECRET_ACCESS_KEY: "$AWS_SECRET_ACCESS_KEY"
+  AWS_DEFAULT_REGION: "us-east-1"
+
+stages:
+  - validate
+  - init
+  - plan
+  - apply
+  - destroy
+
+image:
+  name: hashicorp/terraform:latest
+  entrypoint:
+    - '/usr/bin/env'
+    - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+
+before_script:
+  - apk add --no-cache aws-cli curl unzip bash
+  - aws --version
+  - terraform --version
+
+validate:
+  stage: validate
+  script:
+    - terraform validate
+
+init:
+  stage: init
+  script:
+    - terraform init
+  dependencies:
+    - validate
+  artifacts:
+    paths:
+      - .terraform
+      - .terraform.lock.hcl
+
+plan:
+  stage: plan
+  dependencies:
+    - init
+  script:
+    - terraform plan -out=tfplan
+  artifacts:
+    paths:
+      - tfplan
+      - .terraform
+      - .terraform.lock.hcl
+  only:
+    - main
+
+apply:
+  stage: apply
+  dependencies:
+    - plan
+  script:
+    - terraform apply -auto-approve tfplan
+  only:
+    - main
+
+destroy:
+  stage: destroy
+  dependencies:
+    - init
+  script:
+    - terraform destroy -auto-approve
+  when: manual
+  only:
+    - main
+📘 EXPLANATION FOR NOTES
+🔐 variables Block
+yaml
+Copy
+Edit
+variables:
+  AWS_ACCESS_KEY_ID: "$AWS_ACCESS_KEY_ID"
+  AWS_SECRET_ACCESS_KEY: "$AWS_SECRET_ACCESS_KEY"
+  AWS_DEFAULT_REGION: "us-east-1"
+Used to securely pass AWS credentials from GitLab CI/CD variables.
+
+These are available to terraform and aws-cli during runtime.
+
+✅ Do not hardcode credentials in the script.
+
+🚦 stages Block
+yaml
+Copy
+Edit
+stages:
+  - validate
+  - init
+  - plan
+  - apply
+  - destroy
+Defines the pipeline stages in order.
+
+Each stage can contain one or more jobs.
+
+Helps GitLab execute jobs in a controlled and predictable flow.
+
+🐳 image and entrypoint Block
+yaml
+Copy
+Edit
+image:
+  name: hashicorp/terraform:latest
+  entrypoint:
+    - '/usr/bin/env'
+    - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+image: Specifies the Docker container image to run all jobs.
+
+Using hashicorp/terraform:latest means:
+
+Terraform is pre-installed.
+
+It’s optimized for Terraform tasks.
+
+entrypoint:
+
+Overrides the default entrypoint with env.
+
+Ensures that all system paths are correctly set.
+
+Allows access to commands like bash, aws, terraform, etc.
+
+Without this, Alpine-based images might miss proper path config.
+
+🔧 before_script
+yaml
+Copy
+Edit
+before_script:
+  - apk add --no-cache aws-cli curl unzip bash
+  - aws --version
+  - terraform --version
+Runs before every job unless overridden.
+
+Installs essential tools (aws-cli, curl, unzip, bash).
+
+Required because the Terraform image doesn't include them by default.
+
+Verifies versions to confirm tools are properly installed.
+
+✅ validate Job
+yaml
+Copy
+Edit
+validate:
+  stage: validate
+  script:
+    - terraform validate
+Verifies that Terraform syntax and config are valid.
+
+Catches issues before deployment begins.
+
+🔁 init Job
+yaml
+Copy
+Edit
+init:
+  stage: init
+  script:
+    - terraform init
+  dependencies:
+    - validate
+  artifacts:
+    paths:
+      - .terraform
+      - .terraform.lock.hcl
+Initializes Terraform backend and downloads providers.
+
+dependencies: - validate: Ensures it only runs after validation succeeds.
+
+Artifacts:
+
+.terraform: Contains provider binaries and state.
+
+.terraform.lock.hcl: Locks provider versions to ensure consistency.
+
+These are shared with later jobs like plan and apply.
+
+📐 plan Job
+yaml
+Copy
+Edit
+plan:
+  stage: plan
+  dependencies:
+    - init
+  script:
+    - terraform plan -out=tfplan
+  artifacts:
+    paths:
+      - tfplan
+      - .terraform
+      - .terraform.lock.hcl
+  only:
+    - main
+Shows a preview of what Terraform will do.
+
+-out=tfplan: Saves the plan to a binary file, used in apply.
+
+artifacts: Preserves the plan and config state.
+
+only: main: Restricts to the main branch for safety.
+
+🚀 apply Job
+yaml
+Copy
+Edit
+apply:
+  stage: apply
+  dependencies:
+    - plan
+  script:
+    - terraform apply -auto-approve tfplan
+  only:
+    - main
+Applies infrastructure as described in tfplan.
+
+-auto-approve: Skips manual confirmation.
+
+Again, restricted to main to avoid accidental changes from other branches.
+
+🧹 destroy Job
+yaml
+Copy
+Edit
+destroy:
+  stage: destroy
+  dependencies:
+    - init
+  script:
+    - terraform destroy -auto-approve
+  when: manual
+  only:
+    - main
+Safely destroys the infrastructure.
+
+when: manual: Requires a button click in GitLab UI to run.
+
+Prevents automatic teardown unless intentionally triggered.
+
+✍️ Summary for Your Notes
+Section	Purpose
+variables	Inject AWS credentials securely.
+stages	Controls pipeline execution order.
+image	Uses Terraform-ready container.
+entrypoint	Ensures correct system path and shell environment.
+before_script	Installs AWS CLI and utilities needed by Terraform.
+validate	Checks configuration syntax.
+init	Downloads providers and sets up backend.
+artifacts	Shares important Terraform files across jobs.
+plan	Shows infrastructure changes (preview only).
+apply	Applies the infrastructure changes.
+destroy	Manually tears down infra safely.
